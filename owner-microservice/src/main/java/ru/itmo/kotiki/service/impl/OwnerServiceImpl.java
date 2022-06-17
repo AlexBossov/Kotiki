@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.itmo.kotiki.dto.OwnerDTO;
@@ -39,7 +40,10 @@ public class OwnerServiceImpl implements OwnerService {
         this.userMapper = userMapper;
     }
 
-    @KafkaListener(topics = "ownerGetById", containerFactory = "kafkaListenerContainerFactory")
+//    @KafkaListener(topics = "ownerGetById", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "asyn_message", containerFactory = "requestListenerContainerFactory")
+    @SendTo
+    @Transactional
     public OwnerDTO getById(Long id) throws KotikiException {
         try {
             return ownerMapper.convertOwnerToOwnerDTO(ownerRepository.getById(id));
