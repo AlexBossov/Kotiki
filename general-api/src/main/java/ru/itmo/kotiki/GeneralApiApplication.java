@@ -23,22 +23,22 @@ public class GeneralApiApplication {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    CommandLineRunner run(UserService userService) {
-        return args -> {
-            userService.saveRole(new RoleDTO(null, "ROLE_USER"));
-            userService.saveRole(new RoleDTO(null, "ROLE_ADMIN"));
-
-            userService.saveUser(new UserDTO(null, "john", "1234", new ArrayList<>()));
-            userService.saveUser(new UserDTO(null, "alexbossov", "test", new ArrayList<>()));
-            userService.saveUser(new UserDTO(null, "kira", "1234test", new ArrayList<>()));
-            userService.saveUser(new UserDTO(null, "kek", "rrrttt", new ArrayList<>()));
-
-            userService.addRoleTOUser("john", "ROLE_ADMIN");
-            userService.addRoleTOUser("john", "ROLE_USER");
-            userService.addRoleTOUser("alexbossov", "ROLE_USER");
-            userService.addRoleTOUser("kira", "ROLE_USER");
-            userService.addRoleTOUser("kek", "ROLE_USER");
-        };
-    }
+//    @Bean
+//    CommandLineRunner run(UserService userService) {
+//        return args -> {
+//            userService.saveRole(new RoleDTO(null, "ROLE_USER"));
+//            userService.saveRole(new RoleDTO(null, "ROLE_ADMIN"));
+//
+//            userService.saveUser(new UserDTO(null, "john", "1234", new ArrayList<>()));
+//            userService.saveUser(new UserDTO(null, "alexbossov", "test", new ArrayList<>()));
+//            userService.saveUser(new UserDTO(null, "kira", "1234test", new ArrayList<>()));
+//            userService.saveUser(new UserDTO(null, "kek", "rrrttt", new ArrayList<>()));
+//
+//            userService.addRoleTOUser("john", "ROLE_ADMIN");
+//            userService.addRoleTOUser("john", "ROLE_USER");
+//            userService.addRoleTOUser("alexbossov", "ROLE_USER");
+//            userService.addRoleTOUser("kira", "ROLE_USER");
+//            userService.addRoleTOUser("kek", "ROLE_USER");
+//        };
+//    }
 }

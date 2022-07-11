@@ -16,85 +16,24 @@ import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.itmo.kotiki.dto.OwnerDTO;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
-//    @Value(value = "${kafka.bootstrapAddress}")
-//    private String bootstrapAddress;
-//
-//    @Bean
-//    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Object>> kafkaListenerContainerFactory() {
-//        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
-//                new ConcurrentKafkaListenerContainerFactory<>();
-//        factory.setConsumerFactory(consumerFactory());
-//        factory.setBatchListener(false);
-//        return factory;
-//    }
-//
-//    @Bean
-//    public ConsumerFactory<String, Object> consumerFactory() {
-//        return new DefaultKafkaConsumerFactory<>(consumerConfigs());
-//    }
-//
-//    @Bean
-//    public Map<String, Object> consumerConfigs() {
-//        Map<String, Object> configProps = new HashMap<>();
-//        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-//        configProps.put(
-//                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-//                bootstrapAddress);
-//        configProps.put(
-//                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-//                StringDeserializer.class);
-//        configProps.put(
-//                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-//                JsonDeserializer.class);
-//        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "group");
-//
-//        return configProps;
-//    }
-//
-//    @Bean
-//    public Map<String, Object> producerConfigs() {
-//        Map<String, Object> configProps = new HashMap<>();
-//        configProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-//        configProps.put(
-//                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-//                bootstrapAddress);
-//        configProps.put(
-//                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-//                StringSerializer.class);
-//        configProps.put(
-//                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-//                JsonSerializer.class);
-//        return configProps;
-//    }
-//
-//    @Bean
-//    public ProducerFactory<String, Object> producerFactory() {
-//        return new DefaultKafkaProducerFactory<>(producerConfigs());
-//    }
-//
-//    @Bean
-//    public KafkaTemplate<String, Object> kafkaTemplate() {
-//        return new KafkaTemplate<>(producerFactory());
-//    }
 @Value(value = "${kafka.bootstrapAddress}")
 private String bootstrapAddress;
 
     @Bean
-    public ReplyingKafkaTemplate< String, Long, OwnerDTO> replyKafkaTemplate(
-            ProducerFactory < String, Long > pf,
-            KafkaMessageListenerContainer< String, OwnerDTO > lc) {
+    public ReplyingKafkaTemplate< String, Object, Object> replyKafkaTemplate(
+            ProducerFactory < String, Object > pf,
+            KafkaMessageListenerContainer< String, Object > lc) {
         return new ReplyingKafkaTemplate < > (pf, lc);
     }
 
     @Bean
-    public KafkaTemplate< String, OwnerDTO > replyTemplate() {
+    public KafkaTemplate< String, Object > kafkaTemplate() {
         return new KafkaTemplate < > (replyProducerFactory());
     }
 
@@ -106,7 +45,6 @@ private String bootstrapAddress;
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "message-group");
-//        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "");
         return props;
     }
 
@@ -119,24 +57,24 @@ private String bootstrapAddress;
         return props;
     }
 
+//    @Bean
+//    public ProducerFactory < String, Object > requestProducerFactory() {
+//        return new DefaultKafkaProducerFactory < > (producerConfigs());
+//    }
+
     @Bean
-    public ProducerFactory < String, Long > requestProducerFactory() {
+    public ProducerFactory < String, Object > replyProducerFactory() {
         return new DefaultKafkaProducerFactory < > (producerConfigs());
     }
 
     @Bean
-    public ProducerFactory < String, OwnerDTO > replyProducerFactory() {
-        return new DefaultKafkaProducerFactory < > (producerConfigs());
-    }
-
-    @Bean
-    public ConsumerFactory < String, Long > requestConsumerFactory() {
+    public ConsumerFactory < String, Object > requestConsumerFactory() {
         return new DefaultKafkaConsumerFactory < > (consumerConfigs(), new StringDeserializer(),
                 new JsonDeserializer<> ());
     }
 
     @Bean
-    public ConsumerFactory< String, OwnerDTO > replyConsumerFactory() {
+    public ConsumerFactory< String, Object > replyConsumerFactory() {
         return new DefaultKafkaConsumerFactory < > (
                 consumerConfigs(),
                 new StringDeserializer(),
@@ -144,17 +82,17 @@ private String bootstrapAddress;
     }
 
     @Bean
-    public KafkaMessageListenerContainer < String, OwnerDTO > replyListenerContainer() {
+    public KafkaMessageListenerContainer < String, Object > replyListenerContainer() {
         ContainerProperties containerProperties = new ContainerProperties("reply_message");
         return new KafkaMessageListenerContainer < > (replyConsumerFactory(), containerProperties);
     }
 
     @Bean
-    public KafkaListenerContainerFactory < ConcurrentMessageListenerContainer < String, Long >> requestListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory < String, Long > factory =
+    public KafkaListenerContainerFactory < ConcurrentMessageListenerContainer < String, Object >> requestListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory < String, Object > factory =
                 new ConcurrentKafkaListenerContainerFactory < > ();
         factory.setConsumerFactory(requestConsumerFactory());
-        factory.setReplyTemplate(replyTemplate());
+        factory.setReplyTemplate(kafkaTemplate());
         return factory;
     }
 }

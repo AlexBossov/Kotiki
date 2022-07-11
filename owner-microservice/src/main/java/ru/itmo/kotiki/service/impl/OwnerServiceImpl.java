@@ -40,8 +40,7 @@ public class OwnerServiceImpl implements OwnerService {
         this.userMapper = userMapper;
     }
 
-//    @KafkaListener(topics = "ownerGetById", containerFactory = "kafkaListenerContainerFactory")
-    @KafkaListener(topics = "asyn_message", containerFactory = "requestListenerContainerFactory")
+    @KafkaListener(topics = "ownerGetById", containerFactory = "requestListenerContainerFactory")
     @SendTo
     @Transactional
     public OwnerDTO getById(Long id) throws KotikiException {
@@ -52,17 +51,21 @@ public class OwnerServiceImpl implements OwnerService {
         }
     }
 
-    @KafkaListener(topics = "findAllOwners", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "getOwners", containerFactory = "requestListenerContainerFactory")
+    @SendTo
+    @Transactional
     public List<OwnerDTO> findAll() {
         return ownerRepository.findAll().stream().map(ownerMapper::convertOwnerToOwnerDTO).toList();
     }
 
-    @KafkaListener(topics = "saveOwner", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "saveOwner", containerFactory = "requestListenerContainerFactory")
+    @Transactional
     public OwnerDTO save(OwnerDTO entity) {
         return ownerMapper.convertOwnerToOwnerDTO(ownerRepository.save(ownerMapper.convertOwnerDTOToOwner(entity)));
     }
 
-    @KafkaListener(topics = "updateOwner", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "updateOwner", containerFactory = "requestListenerContainerFactory")
+    @Transactional
     public OwnerDTO update(OwnerDTO entity) {
         try {
             Owner oldOwner = ownerRepository.getById(entity.getId());
@@ -94,7 +97,7 @@ public class OwnerServiceImpl implements OwnerService {
     }
 
     @Transactional
-    @KafkaListener(topics = "deleteOwnerById", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "deleteOwnerById", containerFactory = "requestListenerContainerFactory")
     public OwnerDTO delete(Long id) {
         OwnerDTO owner = ownerMapper.convertOwnerToOwnerDTO(ownerRepository.getById(id));
         ownerRepository.deleteById(id);

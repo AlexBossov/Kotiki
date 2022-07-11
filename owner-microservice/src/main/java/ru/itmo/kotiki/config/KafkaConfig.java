@@ -2,7 +2,6 @@ package ru.itmo.kotiki.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,10 +14,8 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
-import org.springframework.kafka.support.converter.StringJsonMessageConverter;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.itmo.kotiki.dto.OwnerDTO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,14 +27,14 @@ public class KafkaConfig {
     private String bootstrapAddress;
 
     @Bean
-    public ReplyingKafkaTemplate< String, Long, OwnerDTO> replyKafkaTemplate(
-            ProducerFactory < String, Long > pf,
-            KafkaMessageListenerContainer< String, OwnerDTO > lc) {
+    public ReplyingKafkaTemplate< String, Object, Object> replyKafkaTemplate(
+            ProducerFactory < String, Object > pf,
+            KafkaMessageListenerContainer< String, Object > lc) {
         return new ReplyingKafkaTemplate < > (pf, lc);
     }
 
     @Bean
-    public KafkaTemplate< String, OwnerDTO > replyTemplate() {
+    public KafkaTemplate< String, Object > replyTemplate() {
         return new KafkaTemplate < > (replyProducerFactory());
     }
 
@@ -61,24 +58,24 @@ public class KafkaConfig {
         return props;
     }
 
+//    @Bean
+//    public ProducerFactory < String, Object > requestProducerFactory() {
+//        return new DefaultKafkaProducerFactory < > (producerConfigs());
+//    }
+
     @Bean
-    public ProducerFactory < String, Long > requestProducerFactory() {
+    public ProducerFactory < String, Object > replyProducerFactory() {
         return new DefaultKafkaProducerFactory < > (producerConfigs());
     }
 
     @Bean
-    public ProducerFactory < String, OwnerDTO > replyProducerFactory() {
-        return new DefaultKafkaProducerFactory < > (producerConfigs());
-    }
-
-    @Bean
-    public ConsumerFactory < String, Long > requestConsumerFactory() {
+    public ConsumerFactory < String, Object > requestConsumerFactory() {
         return new DefaultKafkaConsumerFactory < > (consumerConfigs(), new StringDeserializer(),
                 new JsonDeserializer<> ());
     }
 
     @Bean
-    public ConsumerFactory< String, OwnerDTO > replyConsumerFactory() {
+    public ConsumerFactory< String, Object > replyConsumerFactory() {
         return new DefaultKafkaConsumerFactory < > (
                 consumerConfigs(),
                 new StringDeserializer(),
@@ -86,18 +83,17 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaMessageListenerContainer < String, OwnerDTO > replyListenerContainer() {
+    public KafkaMessageListenerContainer < String, Object > replyListenerContainer() {
         ContainerProperties containerProperties = new ContainerProperties("reply_message");
         return new KafkaMessageListenerContainer < > (replyConsumerFactory(), containerProperties);
     }
 
     @Bean
-    public KafkaListenerContainerFactory < ConcurrentMessageListenerContainer < String, Long >> requestListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory < String, Long > factory =
+    public KafkaListenerContainerFactory < ConcurrentMessageListenerContainer < String, Object >> requestListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory < String, Object > factory =
                 new ConcurrentKafkaListenerContainerFactory < > ();
         factory.setConsumerFactory(requestConsumerFactory());
         factory.setReplyTemplate(replyTemplate());
         return factory;
     }
-
 }

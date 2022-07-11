@@ -2,6 +2,7 @@ package ru.itmo.kotiki.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Service;
 import ru.itmo.kotiki.exception.KotikiException;
 import ru.itmo.kotiki.repository.CatRepository;
@@ -34,7 +35,9 @@ public class CatServiceImpl implements CatService {
         this.ownerMapper = ownerMapper;
     }
 
-    @KafkaListener(topics = "getCatById", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "getCatById", containerFactory = "requestListenerContainerFactory")
+    @SendTo
+    @Transactional
     public CatDTO getById(Long id) {
         try {
             return catMapper.convertCatToCatDTO(catRepository.getById(id));
@@ -43,7 +46,9 @@ public class CatServiceImpl implements CatService {
         }
     }
 
-    @KafkaListener(topics = "findCats", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "getCats", containerFactory = "requestListenerContainerFactory")
+    @SendTo
+    @Transactional
     public List<CatDTO> findAll(String username) {
         return catRepository
                 .findCatByOwner_User_Username(username)
@@ -52,7 +57,7 @@ public class CatServiceImpl implements CatService {
                 .toList();
     }
 
-    @KafkaListener(topics = "findCatsByBreed", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "findCatsByBreed", containerFactory = "requestListenerContainerFactory")
     public List<CatDTO> findByBreed(String breed, String username) {
         return catRepository
                 .findCatByBreedAndOwner_User_Username(breed, username)
@@ -60,7 +65,7 @@ public class CatServiceImpl implements CatService {
                 .toList();
     }
 
-    @KafkaListener(topics = "findCatsByColor", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "findCatsByColor", containerFactory = "requestListenerContainerFactory")
     public List<CatDTO> findByColor(Color color, String username) {
         return catRepository
                 .findCatByColorAndOwner_User_Username(color, username)
@@ -68,13 +73,13 @@ public class CatServiceImpl implements CatService {
                 .toList();
     }
 
-    @KafkaListener(topics = "saveCat", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "saveCat", containerFactory = "requestListenerContainerFactory")
     public CatDTO save(CatDTO entity) {
         return catMapper.convertCatToCatDTO(catRepository.save(catMapper.convertCatDTOToCat(entity)));
     }
 
     @Transactional
-    @KafkaListener(topics = "updateCat", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "updateCat", containerFactory = "requestListenerContainerFactory")
     public CatDTO update(CatDTO entity) {
         try {
             Cat oldCat = catRepository.getById(entity.getId());
@@ -118,7 +123,7 @@ public class CatServiceImpl implements CatService {
     }
 
     @Transactional
-    @KafkaListener(topics = "deleteCatById", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "deleteCatById", containerFactory = "requestListenerContainerFactory")
     public CatDTO delete(Long id) {
         CatDTO cat = catMapper.convertCatToCatDTO(catRepository.getById(id));
         catRepository.deleteById(id);
