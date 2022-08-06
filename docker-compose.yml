@@ -1,0 +1,122 @@
+version: "3.7"
+
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  mypostgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=Alex1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=kotikidb
+
+
+  zookeeper:
+    image: zookeeper:3.7.0
+    container_name: zookeeper
+    restart: "no"
+    networks:
+      - kafka-net
+    ports:
+      - "2181:2181"
+
+
+  kafka:
+      image: obsidiandynamics/kafka
+      container_name: kafka
+      restart: "no"
+      networks:
+        - kafka-net
+      ports:
+        - "9092:9092"
+      environment:
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+        KAFKA_LISTENERS: INTERNAL://0.0.0.0:9093,EXTERNAL://0.0.0.0:9092
+        KAFKA_ADVERTISED_LISTENERS: INTERNAL://localhost:9093,EXTERNAL://10.0.2.2:9092
+        KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+        KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+        KAFKA_BROKER_ID: 1
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      depends_on:
+        - zookeeper
+
+
+  kafdrop:
+      image: obsidiandynamics/kafdrop
+      container_name: kafdrop
+      restart: "no"
+      networks:
+        - kafka-net
+      ports:
+        - "9000:9000"
+      environment:
+        KAFKA_BROKERCONNECT: "kafka:29092"
+      depends_on:
+        - "kafka"
+
+
+#  dataaccesslayer:
+#    image: kotiki/dataaccesslayer
+#    build: ./data-access-layer
+#    ports:
+#      - "8080:8080"
+#    restart: always
+#    depends_on:
+#      - mypostgres
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://mypostgres:5432/kotikidb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Alex1234
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+#  ownermicroservice:
+#    image: kotiki/ownermicroservice
+#    build: ./owner-microservice
+#    ports:
+#      - "8081:8081"
+#    restart: always
+#    depends_on:
+#      - mypostgres
+##      - dataaccesslayer
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://mypostgres:5432/kotikidb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Alex1234
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+#
+#  catmicroservice:
+#      image: kotiki/catmicroservice
+#      build: ./cat-microservice
+#      ports:
+#        - "8082:8082"
+#      restart: always
+#      depends_on:
+#        - mypostgres
+##        - dataaccesslayer
+#        - ownermicroservice
+#      environment:
+#        - SPRING_DATASOURCE_URL=jdbc:postgresql://mypostgres:5432/kotikidb
+#        - SPRING_DATASOURCE_USERNAME=postgres
+#        - SPRING_DATASOURCE_PASSWORD=Alex1234
+#        - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+#
+#  generalapi:
+#    image: kotiki/generalapi
+#    build: ./general-api
+#    ports:
+#      - "8080:8080"
+#    restart: always
+#    depends_on:
+#      - mypostgres
+#      - ownermicroservice
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://mypostgres:5432/kotikidb
+#      - SPRING_DATASOURCE_USERNAME=postgres
+#      - SPRING_DATASOURCE_PASSWORD=Alex1234
+#      - SPRING_JPA_HIBERNATE_DDL_AUTO=update

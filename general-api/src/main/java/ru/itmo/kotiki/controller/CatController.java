@@ -3,7 +3,6 @@ package ru.itmo.kotiki.controller;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
-import org.postgresql.core.Tuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -16,8 +15,6 @@ import ru.itmo.kotiki.dto.CatDTO;
 import ru.itmo.kotiki.enums.Color;
 import ru.itmo.kotiki.exception.KotikiException;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("api/cats")
